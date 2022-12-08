@@ -1,9 +1,43 @@
+from core.models import (
+    School,
+    Course, Enrollment,
+    Student, Teacher, Administrator
+)
 from rest_framework import serializers
-
-from core.models import School
 
 
 class SchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
-        fields = ["name", "address"]
+        fields = ["id", "name", "address"]
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ["id", "name", "location", "teacher", "school"]
+
+
+class EnrollmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enrollment
+        fields = ["id", "student", "course"]
+
+
+class StudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ["id", "name"]
+
+
+class TeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Teacher
+        fields = ["id", "name"]
+
+
+class AdministratorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Administrator
+        fields = ["id", "name"]
+
