@@ -27,17 +27,17 @@ class EnrollmentSerializer(serializers.ModelSerializer):
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ["id", "name"]
+        fields = ["id", "name", "school"]
 
 
 class TeacherSerializer(serializers.ModelSerializer):
     class Meta:
         model = Teacher
-        fields = ["id", "name"]
+        fields = ["id", "name", "school"]
 
 
 class AdministratorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Administrator
-        fields = ["id", "name"]
+        fields = ["id", "name", "school"]
 

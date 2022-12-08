@@ -1,3 +1,5 @@
+import logging
+
 from core.models import (
     School,
     Course,
@@ -14,24 +16,30 @@ from core.serializers import (
     TeacherSerializer,
     AdministratorSerializer,
 )
-from django.core.exceptions import BadRequest
-from django.http import Http404
 from rest_framework import viewsets, mixins, generics
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import NotFound, bad_request
-from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-import logging
 _logger = logging.getLogger(__name__)
 
 
-class SchoolViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class EntityCRUD(viewsets.GenericViewSet,
+                 mixins.CreateModelMixin,
+                 mixins.RetrieveModelMixin,
+                 mixins.UpdateModelMixin,
+                 mixins.DestroyModelMixin,
+                 mixins.ListModelMixin):
+    pass
+
+
+class SchoolViewSet(EntityCRUD):
     queryset = School.objects.all()
     serializer_class = SchoolSerializer
 
 
-class SchoolDetails(mixins.RetrieveModelMixin,
+class SchoolDetails(mixins.CreateModelMixin,
+                    mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin,
                     mixins.DestroyModelMixin,
                     generics.GenericAPIView):
@@ -46,10 +54,6 @@ class SchoolDetails(mixins.RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, *args, **kwargs)
-
-
-def _count_items(model, school_id):
-    return model.objects.filter(school=school_id).count()
 
 
 class SchoolStats(generics.GenericAPIView):
@@ -68,35 +72,36 @@ class SchoolStats(generics.GenericAPIView):
         return Response(result)
 
 
-class CourseViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class CourseViewSet(EntityCRUD):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
 
 
-class EnrollmentViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class EnrollmentViewSet(EntityCRUD):
     queryset = Enrollment.objects.all()
     serializer_class = EnrollmentSerializer
 
 
-class StudentViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class StudentViewSet(EntityCRUD):
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
 
 
-class TeacherViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class TeacherViewSet(EntityCRUD):
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
 
 
-class AdministratorViewSet(viewsets.GenericViewSet, mixins.ListModelMixin):
+class AdministratorViewSet(EntityCRUD):
     queryset = Administrator.objects.all()
     serializer_class = AdministratorSerializer
 
 
 @api_view(['POST'])
 def transfer_student(request):
-    # , studentId, fromCourseId, toCourseId
-
+    """
+    Transfer student to another course
+    """
     student_id = request.data['studentId']
     from_course_id = request.data['fromCourseId']
     to_course_id = request.data['toCourseId']
@@ -125,8 +130,8 @@ def transfer_student(request):
         _logger.info("transferring student...")
         enrollment.course = course
         enrollment.save()
-    except Enrollment.DoesNotExist:
-        raise bad_request(f"Student {student_id} is not registered for course {from_course_id}")
+    except Enrollment.DoesNotExist as exception:
+        raise bad_request(f"Student {student_id} is not registered for course {from_course_id}", exception)
 
     _logger.info("Return result")
     return Response({
@@ -136,10 +141,5 @@ def transfer_student(request):
     })
 
 
-"""
-{
-    "studentId": 3,
-    "fromCourseId": 1,
-    "toCourseId": 1
-}
-"""
+def _count_items(model, school_id):
+    return model.objects.filter(school=school_id).count()
